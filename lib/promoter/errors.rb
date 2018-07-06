@@ -2,16 +2,25 @@
 
 module Promoter
   module Errors
-    class BadRequest < StandardError; end
-    class Unauthorized < StandardError; end
-    class Forbidden < StandardError; end
-    class NotFound < StandardError; end
-    class MethodNotAllowed < StandardError; end
-    class NotAcceptable < StandardError; end
-    class Gone < StandardError; end
-    class TooManyRequests < StandardError; end
-    class InternalServerError < StandardError; end
-    class ServiceUnavailable < StandardError; end
+    class BaseError < StandardError
+      attr_accessor :response
+
+      def initialize(message, response)
+        super(message)
+        @response = response
+      end
+    end
+
+    class BadRequest < BaseError; end
+    class Unauthorized < BaseError; end
+    class Forbidden < BaseError; end
+    class NotFound < BaseError; end
+    class MethodNotAllowed < BaseError; end
+    class NotAcceptable < BaseError; end
+    class Gone < BaseError; end
+    class TooManyRequests < BaseError; end
+    class InternalServerError < BaseError; end
+    class ServiceUnavailable < BaseError; end
 
     # Error Code	Meaning
     # 400	Bad Request – Something is wrong with your request
@@ -24,28 +33,29 @@ module Promoter
     # 429	Too Many Requests – You’re requesting too much! Slown down!
     # 500	Internal Server Error – We had a problem with our server. Try again later.
     # 503	Service Unavailable – We’re temporarially offline for maintanance. Please try again later.
-    def check_for_error(status_code)
-      case status_code.to_i
+    def check_for_error(response)
+      response_code = response.response.code.to_i
+      case response_code
       when 400
-        raise BadRequest.new("Something is wrong with your request")
+        raise BadRequest.new("Something is wrong with your request", response)
       when 401
-        raise Unauthorized.new("Your API key is incorrect or invalid")
+        raise Unauthorized.new("Your API key is incorrect or invalid", response)
       when 403
-        raise Forbidden.new("The resource requested is hidden for administrators only")
+        raise Forbidden.new("The resource requested is hidden for administrators only", response)
       when 404
-        raise NotFound.new("The specified resource could not be found")
+        raise NotFound.new("The specified resource could not be found", response)
       when 405
-        raise MethodNotAllowed.new("You tried to access a resource with an invalid method")
+        raise MethodNotAllowed.new("You tried to access a resource with an invalid method", response)
       when 406
-        raise NotAcceptable.new("You requested a format that isn’t json")
+        raise NotAcceptable.new("You requested a format that isn’t json", response)
       when 410
-        raise Gone.new("The resource requested has been removed from our servers")
+        raise Gone.new("The resource requested has been removed from our servers", response)
       when 429
-        raise TooManyRequests.new("You’re requesting too much! Slown down!")
+        raise TooManyRequests.new("You’re requesting too much! Slown down!", response)
       when 500
-        raise InternalServerError.new("We had a problem with our server. Try again later.")
+        raise InternalServerError.new("We had a problem with our server. Try again later.", response)
       when 503
-        raise ServiceUnavailable.new("We’re temporarially offline for maintanance. Please try again later.")
+        raise ServiceUnavailable.new("We’re temporarially offline for maintanance. Please try again later.", response)
       end
     end
   end

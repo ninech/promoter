@@ -28,7 +28,7 @@ module Promoter
 
     def self.parse_response(response, response_format=:json)
       display_debug(response.body)
-      check_for_error(response.response.code)
+      check_for_error(response)
       if response_format == :json
         JSON.parse(response.body.to_s)
       else
